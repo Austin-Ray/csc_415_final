@@ -1,0 +1,5 @@
+rootProject.name = 'csc_415_final'
+
+include 'genetic_algorithm'
+include 'swarm_intelligence'
+include 'tsp'
