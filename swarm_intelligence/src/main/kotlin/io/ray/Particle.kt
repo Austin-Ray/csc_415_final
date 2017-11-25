@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2017.
  *
@@ -18,19 +17,7 @@
 
 package io.ray
 
-import java.lang.Math.exp
-import java.lang.Math.pow
-import java.lang.Math.sqrt
-
-import kotlin.DoubleArray as DA
-
-/**
- * Calculate the distance between two points represented by a DoubleArray.
- *
- * @param p1  First point
- * @param p2  Second point
- * @return    Distance between point 1 and point 2
- */
-fun distance(p1: DA, p2: DA) : Double = sqrt(pow(p1[0] - p2[0], 2.0) + pow(p1[1] - p2[1], 2.0))
-
-fun sigmoid(y: Double) : Double = 1.0 / (1.0 + exp(-1.0 * y))
+data class Particle(var path: Path) {
+  var bestPath: Path = path
+  var velocity: List<Array<Number>> = listOf()
+}

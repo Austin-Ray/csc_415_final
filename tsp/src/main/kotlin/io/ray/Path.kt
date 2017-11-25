@@ -23,10 +23,10 @@ package io.ray
  * Reduces amount of manual managing of List<TspNode>
  * @param path  Mutable list of TSP nodes for the path.
  */
-data class Path(val path: MutableList<TspNode>) : Comparable<Path> {
+data class Path(val path: List<TspNode>) : Comparable<Path> {
 
   // Get the distance. If it's not calculated, calculate then save for later.
-  private var distance = -1.0
+  var distance = -1.0
     get() {
       if (field == -1.0) {
         field = calculateDistance(path.toList())

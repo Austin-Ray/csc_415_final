@@ -25,7 +25,7 @@ subprojects {
     }
 
     buildscript {
-        ext.kotlin_version = '1.1.51'
+        ext.kotlin_version = '1.1.60'
 
         repositories {
             mavenCentral()
@@ -38,8 +38,8 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'kotlin'
 
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
     ext {
         JUNIT_VERSION = '4.11'
