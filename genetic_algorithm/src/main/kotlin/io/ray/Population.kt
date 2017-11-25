@@ -38,8 +38,7 @@ class Population(private val num: Int, val entities: MutableList<Path>, private 
     var bestCount = 0
 
     // Loop until it hits the max generations cap.
-    (0 until maxGens).forEach { iteration ->
-      if (iteration % (maxGens / 10) == 0) println("Population $num is on iteration $iteration with ${entities.size} paths")
+    (0 until maxGens).forEach {
       if (entities.size > maxSize) cull()
 
       // Track the best update if necessary.
@@ -48,10 +47,6 @@ class Population(private val num: Int, val entities: MutableList<Path>, private 
       } else {
         lastBest = entities[0]
         bestCount = 0
-      }
-
-      if (bestCount >= maxGens / 100) {
-        return "Population $num Results : ${entities[0]} : Terminating early - stuck in local minimum - Iteration: $iteration"
       }
 
       breed()
