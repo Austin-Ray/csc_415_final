@@ -28,10 +28,10 @@ import java.util.concurrent.Future
  *
  * Written to run on it's own thread to improve result density.
  */
-class Population(private val num: Int, val entities: MutableList<Path>, private val maxSize: Int,
+class Population(private val entities: MutableList<Path>, private val maxSize: Int,
                  private val maxGens: Int) : Callable<String> {
 
-  private val breederPool: ExecutorService = Executors.newCachedThreadPool()
+  private val breederPool: ExecutorService = Executors.newWorkStealingPool()
   private var lastBest = entities[0]
 
   override fun call(): String {
@@ -66,7 +66,6 @@ class Population(private val num: Int, val entities: MutableList<Path>, private 
 
     val count = if (entities.size % 2 == 0) entities.size else entities.size - 1
 
-
     val futures = mutableListOf<Future<Path>>()
 
     (0 until count step 2).forEach { index ->
@@ -75,8 +74,7 @@ class Population(private val num: Int, val entities: MutableList<Path>, private 
     }
 
     entities.clear()
-
-    futures.forEach { entities.add(it.get()) }
+    entities.addAll(futures.map { it.get() })
 
     entities.addAll(eliteCopies)
     entities.sort()
@@ -86,10 +84,6 @@ class Population(private val num: Int, val entities: MutableList<Path>, private 
    * Cull a population if it exceeds the max limit to speed up execution time.
    * Most poor paths when breed with other poor paths will not yield good paths.
    */
-  private fun cull() {
-    val subList = entities.subList(0, maxSize).toList()
-    entities.clear()
-    entities.addAll(subList)
-  }
+  private fun cull() = entities.removeAll(entities.subList(maxSize, entities.lastIndex))
 }
 

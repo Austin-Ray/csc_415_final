@@ -18,8 +18,7 @@
 
 package io.ray
 
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java.io.*
 import java.net.URL
 import kotlin.streams.toList
 
@@ -38,3 +37,15 @@ fun readTspData(path: URL) : List<TspNode> = BufferedReader(InputStreamReader(pa
     .map { line -> line.split(delim)}
     .map { elems -> TspNode(elems[2], doubleArrayOf(elems[0].toDouble(), elems[1].toDouble()))}
     .toList()
+
+
+fun stringWriter(data: List<String>, path: String) {
+  val pw = PrintWriter(File(path).outputStream())
+
+  data.forEach {
+    pw.println(it)
+  }
+
+  pw.close()
+}
+

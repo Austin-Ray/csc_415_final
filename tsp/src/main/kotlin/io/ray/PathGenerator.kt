@@ -28,11 +28,8 @@ fun generateRandomPath(points: List<TspNode>) : Path {
   val tempPath: MutableList<TspNode> = mutableListOf()
   val tempPoints = points.toMutableList()
 
-  val rand = Random()
-  while (tempPath.size != points.size) {
-    tempPath.add(tempPoints.removeAt(rand.nextInt(tempPoints.size)))
-  }
-
+  Collections.shuffle(tempPoints)
+  tempPath.addAll(tempPoints)
   tempPath.add(tempPath[0])
 
   return Path(tempPath)

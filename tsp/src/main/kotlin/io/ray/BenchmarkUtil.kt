@@ -19,6 +19,9 @@ package io.ray
 
 import com.sun.management.OperatingSystemMXBean
 
+fun recordBenchmark(rt: Runtime, osmxb: OperatingSystemMXBean): String =
+    "${System.currentTimeMillis()} \t ${getCpuUsage(osmxb)} \t ${bytesToKiloBytes(getMemoryUsage(rt))}"
+
 /**
  * Calculate the memory usage of a Runtime.
  * @param rt    Runtime of the object

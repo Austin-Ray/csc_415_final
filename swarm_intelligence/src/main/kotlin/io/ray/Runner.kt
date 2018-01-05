@@ -18,10 +18,11 @@
 
 package io.ray
 
-import java.util.*
+import com.sun.management.OperatingSystemMXBean
+import java.lang.management.ManagementFactory
 import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorCompletionService
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadPoolExecutor
 
 val maxParticles = 100
 val maxIterations = 100
@@ -29,81 +30,60 @@ val maxIterations = 100
 val cognitiveCoefficient = 0.7
 val socialCoefficient = 0.7
 
-val size = 14
+val size = 500
+
+private val tp = Executors.newWorkStealingPool()
+private val cs = ExecutorCompletionService<Boolean>(tp)
 
 fun main(args: Array<String>) {
   val res = ClassLoader.getSystemClassLoader().getResource("tsp_data")
   val baseData = readTspData(res)
+  val data: MutableList<String> = mutableListOf()
+  val rt: Runtime = Runtime.getRuntime()
+  val osmxb: OperatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
 
-  val threadPool = Executors.newWorkStealingPool()
-  val submitted = threadPool.submit(Runner(baseData.subList(0, size)))
+  val particles = mutableSetOf<Particle>()
+  while (particles.size < maxParticles) {
+    val basePath = generateRandomPath(baseData.subList(0, size))
+    particles.add(Particle(basePath))
+  }
+
+  val threadPool = Executors.newSingleThreadExecutor()
+  val submitted = threadPool.submit(Runner(baseData.subList(0, size), particles.toMutableList()))
+
+  while (!submitted.isDone) {
+    data.add(recordBenchmark(rt, osmxb))
+    Thread.sleep(1)
+  }
+
+  data.add(submitted.get())
+
+  stringWriter(data, "/home/aray/temp/swarm_intell_$size.txt")
+
+  System.exit(0)
 }
 
-class Runner(val inputData: List<TspNode>) : Callable<Boolean> {
-  override fun call(): Boolean {
+
+class Runner(private val inputData: List<TspNode>, private val particles: MutableList<Particle>)
+  : Callable<String> {
+
+  override fun call(): String {
     val vertices = inputData.size
+    var globalBest: Particle
 
-    val particles = mutableListOf<Particle>()
+    (0 until maxIterations).forEach {
+      globalBest = particles.minBy { particle -> particle.bestPath.distance }!!
 
-    (0 until maxParticles).forEach {
-      val basePath = generateRandomPath(inputData)
-      particles.add(Particle(basePath))
+      val f = particles.map { part -> cs.submit(AsyncFlocker(part, globalBest, vertices))}
+          .toMutableList()
+
+      while (f.size > 0) f.remove(cs.take())
     }
 
-    for (i in 0 until maxIterations) {
-      particles.sortBy { part -> part.bestPath.distance }
-      val globBestPart = particles[0]
+    println("Done baby.")
 
-      particles.forEach { part ->
-        val tempVel = mutableListOf<Array<Number>>()
+    tp.shutdown()
 
-        val globBestCopy = globBestPart.bestPath.path.toMutableList()
-        val bestPathNodes = part.bestPath.path.toMutableList()
-
-        val currPathNodes = part.path.path.toMutableList()
-
-        // Generate all swap operators to calculate (pbest - x(t-1))
-        for (j in 0 until vertices) {
-          if (currPathNodes[j] != bestPathNodes[j]) {
-            val swapOp = arrayOf<Number>(j, bestPathNodes.indexOf(currPathNodes[j]), cognitiveCoefficient)
-            tempVel.add(swapOp)
-
-            bestPathNodes.swap(swapOp[0] as Int, swapOp[1] as Int)
-          }
-        }
-
-        // Generates all swap operators to calculate (gbest - x(t-1))
-        for (j in 0 until vertices) {
-          if (currPathNodes[j] != globBestCopy[j]) {
-            val swapOp = arrayOf<Number>(j, globBestCopy.indexOf(currPathNodes[j]), socialCoefficient)
-            tempVel.add(swapOp)
-
-            globBestCopy.swap(swapOp[0] as Int, swapOp[1] as Int)
-          }
-        }
-
-        // Update the velocity.
-        part.velocity = tempVel
-
-        // Generate new solutions
-        tempVel.forEach { swap ->
-          if (Random().nextDouble() <= swap[2] as Double) {
-            currPathNodes.swap(swap[0] as Int, swap[1] as Int)
-          }
-        }
-
-        currPathNodes[currPathNodes.lastIndex] = currPathNodes[0]
-
-        part.path = Path(currPathNodes)
-
-        if (part.path.distance < part.bestPath.distance) {
-          part.bestPath = part.path
-        }
-      }
-    }
-
-    particles.forEach { println(it.path) }
-
-    return true
+    return particles.minBy { particle -> particle.bestPath.distance }!!.bestPath.toString()
   }
 }

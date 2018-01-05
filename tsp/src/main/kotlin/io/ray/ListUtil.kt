@@ -24,9 +24,8 @@ package io.ray
  * @param pos2    Second position
  */
 fun <E> MutableList<E>.swap(pos1: Int, pos2: Int) {
-  val elem2 = this.removeAt(pos2)
-  val elem1 = this.removeAt(pos1)
+  val temp = this[pos1]
 
-  this.add(pos1, elem2)
-  this.add(pos2, elem1)
+  this.add(pos1, this[pos2])
+  this.add(pos2, temp)
 }

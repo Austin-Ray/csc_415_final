@@ -17,7 +17,35 @@
 
 package io.ray
 
-data class Particle(var path: Path) {
+import java.util.*
+
+class Particle(var path: Path) {
   var bestPath: Path = path
-  var velocity: List<Array<Number>> = listOf()
+  var velocity: List<SwapOp> = listOf()
+    set(value) {
+      field = value
+      val curPath = path.path.toMutableList()
+
+
+
+      field.forEach { swap ->
+        if (Random().nextDouble() <= swap.coeff) {
+          curPath.swap(swap.pos1, swap.pos2)
+        }
+      }
+
+      if (curPath.size % 2 == 1) curPath[curPath.lastIndex] = curPath[0] else curPath.add(curPath[0])
+
+      path = Path(curPath)
+
+      updatePBest()
+
+      field = field.map { it -> SwapOp(it.pos1, it.pos2, inertia) }
+    }
+
+  fun updatePBest() {
+    if (path.distance < bestPath.distance) bestPath = path
+  }
 }
+
+

@@ -38,7 +38,7 @@ fun main(args: Array<String>) {
   val maxGens       = getInputAsInt("Maximum generations", 100_000)
 
   if (populations > 0) {
-    run(listOf(populations, maxPopSize, initPopSize, maxGens))
+    //run(listOf(populations, maxPopSize, initPopSize, maxGens))
   } else {
     println("Umm... no populations? Bye!")
   }
